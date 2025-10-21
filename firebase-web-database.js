@@ -23,16 +23,24 @@ class FirebaseWebDatabase {
 
     async initialize() {
         try {
-            // Firebase config from your project
+            // Firebase config from environment variables
             const firebaseConfig = {
-                apiKey: process.env.FIREBASE_API_KEY || "AIzaSyBxHKyy1XAdKLkjQCNTuhdieQLtjZnq3hQ",
-                authDomain: process.env.FIREBASE_AUTH_DOMAIN || "linkedin-generator-95f96.firebaseapp.com",
-                projectId: process.env.FIREBASE_PROJECT_ID || "linkedin-generator-95f96",
-                storageBucket: process.env.FIREBASE_STORAGE_BUCKET || "linkedin-generator-95f96.firebasestorage.app",
-                messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID || "753617799017",
-                appId: process.env.FIREBASE_APP_ID || "1:753617799017:web:5a80c2748e3079f27a9ff8",
-                measurementId: process.env.FIREBASE_MEASUREMENT_ID || "G-LE6NFS6XT8"
+                apiKey: process.env.FIREBASE_API_KEY,
+                authDomain: process.env.FIREBASE_AUTH_DOMAIN,
+                projectId: process.env.FIREBASE_PROJECT_ID,
+                storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
+                messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
+                appId: process.env.FIREBASE_APP_ID,
+                measurementId: process.env.FIREBASE_MEASUREMENT_ID
             };
+
+            // Validate required environment variables
+            const requiredVars = ['FIREBASE_API_KEY', 'FIREBASE_AUTH_DOMAIN', 'FIREBASE_PROJECT_ID', 'FIREBASE_STORAGE_BUCKET', 'FIREBASE_MESSAGING_SENDER_ID', 'FIREBASE_APP_ID'];
+            for (const varName of requiredVars) {
+                if (!process.env[varName]) {
+                    throw new Error(`Missing required environment variable: ${varName}`);
+                }
+            }
 
             // Initialize Firebase
             const app = initializeApp(firebaseConfig);
@@ -152,17 +160,23 @@ Hashtags: None`,
     }
 
     async getPreset(id) {
-        const docRef = doc(this.db, 'presets', id);
-        const docSnap = await getDoc(docRef);
+        try {
+            const docRef = doc(this.db, 'presets', id);
+            const docSnap = await getDoc(docRef);
 
-        if (!docSnap.exists()) return null;
+            if (!docSnap.exists()) return null;
 
-        return {
-            id: docSnap.id,
-            ...docSnap.data(),
-            created_at: this.convertTimestamp(docSnap.data().created_at),
-            updated_at: this.convertTimestamp(docSnap.data().updated_at)
-        };
+            const data = docSnap.data();
+            return {
+                id: docSnap.id,
+                ...data,
+                created_at: this.convertTimestamp(data.created_at),
+                updated_at: this.convertTimestamp(data.updated_at)
+            };
+        } catch (error) {
+            console.error('Error getting preset:', error);
+            throw error;
+        }
     }
 
     async createPreset(name, systemPrompt, outputStructure) {

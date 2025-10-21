@@ -20,23 +20,25 @@ This project uses a **split deployment** strategy:
 
 ```
 OPENAI_API_KEY=your-openai-api-key
-AUTH_PASSWORD=FJ7aGAohcaXfCHgH3DDEPfTv.sv@Xy
-SESSION_SECRET=fooh-session-secret-key-for-development
+AUTH_PASSWORD=your-secure-password-here
+SESSION_SECRET=your-random-session-secret-here
 NODE_ENV=production
 
-# Firebase Configuration
-FIREBASE_PROJECT_ID=linkedin-generator-95f96
-FIREBASE_PRIVATE_KEY_ID=your-private-key-id
-FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nyour-private-key-here\n-----END PRIVATE KEY-----"
-FIREBASE_CLIENT_EMAIL=your-service-account@linkedin-generator-95f96.iam.gserviceaccount.com
-FIREBASE_CLIENT_ID=your-client-id
+# Firebase Configuration (Web SDK)
+FIREBASE_API_KEY=your-firebase-api-key
+FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
+FIREBASE_PROJECT_ID=your-project-id
+FIREBASE_STORAGE_BUCKET=your-project.firebasestorage.app
+FIREBASE_MESSAGING_SENDER_ID=your-sender-id
+FIREBASE_APP_ID=your-app-id
+FIREBASE_MEASUREMENT_ID=your-measurement-id
 ```
 
 ## 📁 Files Structure
 
 ```
 ├── server.js           # Express server (Railway)
-├── firebase-database.js # Firebase Firestore database (Railway)
+├── firebase-web-database.js # Firebase Firestore database (Railway)
 ├── package.json        # Dependencies (Railway)
 ├── .env.example        # Environment template
 ├── frontend-for-ftp/   # Frontend files (Hetzner FTP)
