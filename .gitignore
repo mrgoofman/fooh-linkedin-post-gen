@@ -37,3 +37,7 @@ Thumbs.db
 # Temporary files
 *.tmp
 *.temp
+
+# Frontend files (deployed separately to FTP)
+frontend-for-ftp/
+*.html
