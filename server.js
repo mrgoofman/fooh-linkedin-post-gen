@@ -259,7 +259,7 @@ app.get('/api/presets', requireAuth, async (req, res) => {
 // Get specific preset
 app.get('/api/presets/:id', requireAuth, async (req, res) => {
     try {
-        const preset = await db.getPreset(parseInt(req.params.id));
+        const preset = await db.getPreset(req.params.id);
         if (!preset) {
             return res.status(404).json({ error: 'Preset not found' });
         }
@@ -295,7 +295,7 @@ app.post('/api/presets', requireAuth, async (req, res) => {
 app.put('/api/presets/:id', requireAuth, async (req, res) => {
     try {
         const { name, systemPrompt, outputStructure } = req.body;
-        const id = parseInt(req.params.id);
+        const id = req.params.id;
 
         if (!name || !systemPrompt) {
             return res.status(400).json({ error: 'Name and system prompt are required' });
@@ -316,7 +316,7 @@ app.put('/api/presets/:id', requireAuth, async (req, res) => {
 // Delete preset
 app.delete('/api/presets/:id', requireAuth, async (req, res) => {
     try {
-        const id = parseInt(req.params.id);
+        const id = req.params.id;
         await db.deletePreset(id);
         res.json({ message: 'Preset deleted successfully' });
     } catch (error) {
@@ -347,7 +347,7 @@ app.get('/api/facts', requireAuth, async (req, res) => {
 // Get specific fact
 app.get('/api/facts/:id', requireAuth, async (req, res) => {
     try {
-        const fact = await db.getFact(parseInt(req.params.id));
+        const fact = await db.getFact(req.params.id);
         if (!fact) {
             return res.status(404).json({ error: 'Fact not found' });
         }
@@ -379,7 +379,7 @@ app.post('/api/facts', requireAuth, async (req, res) => {
 app.put('/api/facts/:id', requireAuth, async (req, res) => {
     try {
         const { factText, category } = req.body;
-        const id = parseInt(req.params.id);
+        const id = req.params.id;
 
         if (!factText || !factText.trim()) {
             return res.status(400).json({ error: 'Fact text is required' });
@@ -400,7 +400,7 @@ app.put('/api/facts/:id', requireAuth, async (req, res) => {
 // Delete fact
 app.delete('/api/facts/:id', requireAuth, async (req, res) => {
     try {
-        const id = parseInt(req.params.id);
+        const id = req.params.id;
         await db.deleteFact(id);
         res.json({ message: 'Fact deleted successfully' });
     } catch (error) {
@@ -416,7 +416,7 @@ app.delete('/api/facts/:id', requireAuth, async (req, res) => {
 // Increment fact usage
 app.post('/api/facts/:id/use', requireAuth, async (req, res) => {
     try {
-        const id = parseInt(req.params.id);
+        const id = req.params.id;
         await db.incrementFactUsage(id);
         res.json({ message: 'Usage count updated' });
     } catch (error) {
