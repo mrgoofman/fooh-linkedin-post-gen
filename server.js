@@ -12,6 +12,9 @@ const PORT = process.env.PORT || 3000;
 // Initialize database
 const db = new Database();
 
+// Trust proxy for Railway deployment
+app.set('trust proxy', 1);
+
 // Middleware
 app.use(cors({
     origin: ['http://localhost:3000', 'http://localhost:8080', 'null', 'https://fooh-linkedin.snekmedia.com', 'http://fooh-linkedin.snekmedia.com'],
@@ -25,14 +28,17 @@ app.use(express.json());
 
 // Session middleware
 app.use(session({
+    name: 'fooh.sid',
     secret: process.env.SESSION_SECRET || 'fooh-default-secret',
     resave: false,
-    saveUninitialized: false,
+    saveUninitialized: true, // Changed to true for cross-domain compatibility
+    proxy: true, // Trust the reverse proxy
     cookie: {
         secure: process.env.NODE_ENV === 'production', // Use HTTPS in production
         httpOnly: true,
         maxAge: 24 * 60 * 60 * 1000, // 24 hours
-        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax' // Allow cross-site cookies in production
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // Allow cross-site cookies in production
+        domain: process.env.NODE_ENV === 'production' ? '.up.railway.app' : undefined // Use Railway domain for cookies
     }
 }));
 
