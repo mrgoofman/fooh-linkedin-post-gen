@@ -1,0 +1,1633 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FOOH LinkedIn Post Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f5f5f5;
+            padding: 20px;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+        }
+
+        .header {
+            position: relative;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin: 0;
+            font-weight: 600;
+        }
+
+        .settings-icon {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            opacity: 0.6;
+            transition: opacity 0.2s;
+        }
+
+        .settings-icon:hover {
+            opacity: 1;
+        }
+
+        .settings-icon svg {
+            width: 100%;
+            height: 100%;
+            fill: #666;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #555;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.2s;
+            font-family: inherit;
+        }
+
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #0073b1;
+        }
+
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 30px;
+        }
+
+        button {
+            flex: 1;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .btn-primary {
+            background-color: #0073b1;
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background-color: #005885;
+        }
+
+        .btn-secondary {
+            background-color: #f3f2ef;
+            color: #666;
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background-color: #e4e2df;
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .result-container {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #e1e5e9;
+            display: none;
+        }
+
+        .result-container.show {
+            display: block;
+        }
+
+        #result {
+            background: white;
+            padding: 16px;
+            border-radius: 6px;
+            border: 1px solid #ddd;
+            white-space: pre-wrap;
+            font-family: inherit;
+            font-size: 14px;
+            line-height: 1.4;
+            margin: 0;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #ffffff;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .error {
+            color: #d93025;
+            background-color: #fce8e6;
+            padding: 12px 16px;
+            border-radius: 6px;
+            margin-top: 20px;
+            border: 1px solid #f5c6cb;
+        }
+
+        .success-message {
+            color: #137333;
+            background-color: #e6f4ea;
+            padding: 8px 12px;
+            border-radius: 4px;
+            margin-top: 10px;
+            font-size: 13px;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            margin: 20px;
+            width: 100%;
+        }
+
+        .modal h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .modal-section {
+            margin-bottom: 25px;
+        }
+
+        .modal-section h3 {
+            color: #555;
+            margin-bottom: 10px;
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .modal textarea {
+            min-height: 150px;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 13px;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 30px;
+        }
+
+        .modal-buttons button {
+            flex: none;
+            padding: 10px 20px;
+        }
+
+        .preset-selector {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .preset-selector select {
+            flex: 1;
+            padding: 8px 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .preset-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .preset-actions button {
+            padding: 8px 12px;
+            font-size: 12px;
+            border-radius: 6px;
+        }
+
+        .preset-name-input {
+            margin-bottom: 15px;
+        }
+
+        .preset-name-input input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        .btn-danger {
+            background-color: #d93025;
+            color: white;
+        }
+
+        .btn-danger:hover:not(:disabled) {
+            background-color: #b52d20;
+        }
+
+        .tab-navigation {
+            display: flex;
+            border-bottom: 2px solid #e1e5e9;
+            margin-bottom: 20px;
+        }
+
+        .tab-button {
+            padding: 12px 20px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            color: #666;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .tab-button.active {
+            color: #0073b1;
+            border-bottom-color: #0073b1;
+        }
+
+        .tab-button:hover {
+            color: #0073b1;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .facts-list {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #e1e5e9;
+            border-radius: 6px;
+            margin-bottom: 15px;
+        }
+
+        .fact-item {
+            padding: 12px;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .fact-item:last-child {
+            border-bottom: none;
+        }
+
+        .fact-item:hover {
+            background-color: #f8f9fa;
+        }
+
+        .fact-text {
+            flex: 1;
+            font-size: 13px;
+            line-height: 1.4;
+            color: #333;
+        }
+
+        .fact-meta {
+            font-size: 11px;
+            color: #888;
+            margin-top: 4px;
+        }
+
+        .fact-actions {
+            display: flex;
+            gap: 5px;
+            flex-shrink: 0;
+        }
+
+        .fact-actions button {
+            padding: 4px 8px;
+            font-size: 11px;
+            border-radius: 4px;
+        }
+
+        .add-fact-section {
+            border-top: 1px solid #e1e5e9;
+            padding-top: 15px;
+        }
+
+        .add-fact-input {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .add-fact-input textarea {
+            flex: 1;
+            min-height: 60px;
+            resize: vertical;
+        }
+
+        .fact-input-container {
+            position: relative;
+        }
+
+        .fact-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 2px solid #0073b1;
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+        }
+
+        .fact-dropdown.show {
+            display: block;
+        }
+
+        .fact-option {
+            padding: 10px 12px;
+            cursor: pointer;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 13px;
+            line-height: 1.3;
+        }
+
+        .fact-option:last-child {
+            border-bottom: none;
+        }
+
+        .fact-option:hover {
+            background-color: #f8f9fa;
+        }
+
+        .fact-option.highlighted {
+            background-color: #e3f2fd;
+        }
+
+        .fact-usage {
+            font-size: 11px;
+            color: #888;
+            margin-top: 2px;
+        }
+
+        .fact-edit-form {
+            display: none;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 6px;
+            margin-top: 10px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .fact-edit-form.show {
+            display: block;
+        }
+
+        .fact-edit-textarea {
+            width: 100%;
+            min-height: 80px;
+            padding: 10px;
+            border: 2px solid #e1e5e9;
+            border-radius: 6px;
+            resize: vertical;
+            font-family: inherit;
+            font-size: 13px;
+            line-height: 1.4;
+            box-sizing: border-box;
+        }
+
+        .fact-edit-textarea:focus {
+            outline: none;
+            border-color: #0073b1;
+        }
+
+        .fact-edit-buttons {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+            justify-content: flex-end;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 20px;
+                margin: 10px;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .modal {
+                margin: 10px;
+                padding: 20px;
+            }
+
+            .modal-buttons {
+                flex-direction: column;
+            }
+        }
+        /* Authentication Styles */
+        .login-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+
+        .login-modal {
+            background: white;
+            border-radius: 12px;
+            padding: 40px;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            text-align: center;
+        }
+
+        .login-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .login-input {
+            padding: 12px 16px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        .login-button {
+            padding: 12px 24px;
+            background-color: #0073b1;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        .login-error {
+            color: #d93025;
+            background-color: #fce8e6;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 13px;
+        }
+
+        .logout-button {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            padding: 8px 16px;
+            background-color: #f3f2ef;
+            color: #666;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .app-container {
+            display: none;
+        }
+
+        .app-container.authenticated {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Overlay -->
+    <div class="login-overlay" id="loginOverlay">
+        <div class="login-modal">
+            <h2>FOOH Access</h2>
+            <p style="margin-bottom: 20px; color: #666;">Please enter the password to continue</p>
+            <form class="login-form" id="loginForm">
+                <input type="password" id="loginPassword" class="login-input" placeholder="Password" required>
+                <button type="submit" id="loginButton" class="login-button">Login</button>
+                <div id="loginError"></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Main App -->
+    <div class="app-container" id="appContainer">
+        <button class="logout-button" id="logoutButton">Logout</button>
+        <div class="container">
+        <div class="header">
+            <h1>FOOH LinkedIn Post Generator</h1>
+            <div class="settings-icon" id="settingsIcon">
+                <svg viewBox="0 0 24 24">
+                    <path d="M12,15.5A3.5,3.5 0 0,1 8.5,12A3.5,3.5 0 0,1 12,8.5A3.5,3.5 0 0,1 15.5,12A3.5,3.5 0 0,1 12,15.5M19.43,12.97C19.47,12.65 19.5,12.33 19.5,12C19.5,11.67 19.47,11.34 19.43,11.03L21.54,9.37C21.73,9.22 21.78,8.95 21.66,8.73L19.66,5.27C19.54,5.05 19.27,4.96 19.05,5.05L16.56,6.05C16.04,5.66 15.5,5.32 14.87,5.07L14.5,2.42C14.46,2.18 14.25,2 14,2H10C9.75,2 9.54,2.18 9.5,2.42L9.13,5.07C8.5,5.32 7.96,5.66 7.44,6.05L4.95,5.05C4.73,4.96 4.46,5.05 4.34,5.27L2.34,8.73C2.22,8.95 2.27,9.22 2.46,9.37L4.57,11.03C4.53,11.34 4.5,11.67 4.5,12C4.5,12.33 4.53,12.65 4.57,12.97L2.46,14.63C2.27,14.78 2.22,15.05 2.34,15.27L4.34,18.73C4.46,18.95 4.73,19.03 4.95,18.95L7.44,17.94C7.96,18.34 8.5,18.68 9.13,18.93L9.5,21.58C9.54,21.82 9.75,22 10,22H14C14.25,22 14.46,21.82 14.5,21.58L14.87,18.93C15.5,18.68 16.04,18.34 16.56,17.94L19.05,18.95C19.27,19.03 19.54,18.95 19.66,18.73L21.66,15.27C21.78,15.05 21.73,14.78 21.54,14.63L19.43,12.97Z"/>
+                </svg>
+            </div>
+        </div>
+
+        <form id="postForm">
+            <div class="form-group">
+                <label for="description">Video Description</label>
+                <textarea id="description" placeholder="Describe what happens in the FOOH video..." required></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="metrics">Metrics</label>
+                <input type="text" id="metrics" placeholder="e.g., 209,000 views, 8,006 likes" required>
+            </div>
+
+            <div class="form-group">
+                <label for="fact">FOOH Fact/Insight</label>
+                <div class="fact-input-container">
+                    <input type="text" id="fact" placeholder="Type or select a FOOH fact/insight..." required autocomplete="off">
+                    <div class="fact-dropdown" id="factDropdown"></div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="creator">Creator (optional)</label>
+                <input type="text" id="creator" placeholder="e.g., @username or Creator Name">
+            </div>
+
+            <div class="button-group">
+                <button type="submit" id="generateBtn" class="btn-primary">
+                    Generate Post
+                </button>
+                <button type="button" id="copyBtn" class="btn-secondary" disabled>
+                    Copy to Clipboard
+                </button>
+            </div>
+        </form>
+
+        <div id="errorContainer"></div>
+
+        <div class="result-container" id="resultContainer">
+            <h3>Generated LinkedIn Post:</h3>
+            <pre id="result"></pre>
+            <div id="successMessage"></div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="modal-overlay" id="settingsModal">
+        <div class="modal">
+            <h2>Settings</h2>
+
+            <div class="tab-navigation">
+                <button type="button" class="tab-button active" id="promptsTab">Prompts</button>
+                <button type="button" class="tab-button" id="factsTab">Facts Library</button>
+            </div>
+
+            <!-- Prompts Tab Content -->
+            <div class="tab-content active" id="promptsContent">
+                <div class="modal-section">
+                    <h3>Preset Management</h3>
+                    <div class="preset-selector">
+                        <select id="presetSelector">
+                            <option value="">Loading presets...</option>
+                        </select>
+                        <div class="preset-actions">
+                            <button type="button" id="newPresetBtn" class="btn-secondary btn-small">New</button>
+                            <button type="button" id="deletePresetBtn" class="btn-danger btn-small">Delete</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-section preset-name-input" id="presetNameSection" style="display: none;">
+                    <h3>Preset Name</h3>
+                    <input type="text" id="presetName" placeholder="Enter preset name..." maxlength="50">
+                </div>
+
+                <div class="modal-section">
+                    <h3>System Prompt</h3>
+                    <textarea id="systemPrompt" placeholder="Enter the system prompt here..."></textarea>
+                </div>
+
+                <div class="modal-section">
+                    <h3>Output Structure Guidelines</h3>
+                    <textarea id="outputStructure" placeholder="Enter output structure guidelines here..."></textarea>
+                </div>
+
+                <div class="modal-buttons">
+                    <button type="button" id="cancelSettings" class="btn-secondary">Cancel</button>
+                    <button type="button" id="saveAsNewBtn" class="btn-secondary" style="display: none;">Save as New</button>
+                    <button type="button" id="saveSettings" class="btn-primary">Save Settings</button>
+                </div>
+            </div>
+
+            <!-- Facts Library Tab Content -->
+            <div class="tab-content" id="factsContent">
+                <div class="modal-section">
+                    <h3>FOOH Facts Library</h3>
+                    <div class="facts-list" id="factsList">
+                        <div style="padding: 20px; text-align: center; color: #666;">Loading facts...</div>
+                    </div>
+
+                    <div class="add-fact-section">
+                        <h4>Add New Fact</h4>
+                        <div class="add-fact-input">
+                            <textarea id="newFactText" placeholder="Enter a new FOOH fact or insight..."></textarea>
+                            <button type="button" id="addFactBtn" class="btn-primary btn-small">Add</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-buttons">
+                    <button type="button" id="cancelFactsSettings" class="btn-secondary">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration - Update this URL when deploying to Railway
+        const API_BASE = 'https://fooh-linkedin.snekmedia.com';
+
+        // Authentication elements
+        const loginOverlay = document.getElementById('loginOverlay');
+        const loginForm = document.getElementById('loginForm');
+        const loginPassword = document.getElementById('loginPassword');
+        const loginButton = document.getElementById('loginButton');
+        const loginError = document.getElementById('loginError');
+        const logoutButton = document.getElementById('logoutButton');
+        const appContainer = document.getElementById('appContainer');
+
+        // Authentication state
+        let isAuthenticated = false;
+
+        const form = document.getElementById('postForm');
+        const generateBtn = document.getElementById('generateBtn');
+        const copyBtn = document.getElementById('copyBtn');
+        const resultContainer = document.getElementById('resultContainer');
+        const result = document.getElementById('result');
+        const errorContainer = document.getElementById('errorContainer');
+        const successMessage = document.getElementById('successMessage');
+
+        // Settings modal elements
+        const settingsIcon = document.getElementById('settingsIcon');
+        const settingsModal = document.getElementById('settingsModal');
+        const systemPromptTextarea = document.getElementById('systemPrompt');
+        const outputStructureTextarea = document.getElementById('outputStructure');
+        const saveSettingsBtn = document.getElementById('saveSettings');
+        const cancelSettingsBtn = document.getElementById('cancelSettings');
+        const presetSelector = document.getElementById('presetSelector');
+        const newPresetBtn = document.getElementById('newPresetBtn');
+        const deletePresetBtn = document.getElementById('deletePresetBtn');
+        const presetNameSection = document.getElementById('presetNameSection');
+        const presetNameInput = document.getElementById('presetName');
+        const saveAsNewBtn = document.getElementById('saveAsNewBtn');
+
+        // Tab elements
+        const promptsTab = document.getElementById('promptsTab');
+        const factsTab = document.getElementById('factsTab');
+        const promptsContent = document.getElementById('promptsContent');
+        const factsContent = document.getElementById('factsContent');
+
+        // Facts elements
+        const factsList = document.getElementById('factsList');
+        const newFactText = document.getElementById('newFactText');
+        const addFactBtn = document.getElementById('addFactBtn');
+        const cancelFactsSettings = document.getElementById('cancelFactsSettings');
+
+        // Management variables
+        let currentPresets = [];
+        let currentPresetId = null;
+        let isCreatingNew = false;
+        let currentFacts = [];
+        let editingFactId = null;
+        let factDropdownVisible = false;
+        let selectedFactIndex = -1;
+
+        // Default prompts
+        const defaultSystemPrompt = `You write short, high-signal LinkedIn posts about FOOH (Fake Out Of Home) videos.
+Rules:
+- Start with a varied HOOK that includes "FOOH".
+- Include one-line performance indicator (views & likes).
+- Relate directly to what happens in the video.
+- Mention the creator(s) or "🎬 Created by [add creator]".
+- Add one compact insight about why it worked.
+- End with: "Explore more examples in the FOOH Library → fooh.com/library".
+- Keep it 4–7 short lines, no hashtags.
+- Vary hooks and rhythm so posts never feel repetitive.
+When writing the hook, make sure to keep it short, consider mentioning the brand and use best practice on linkedin.
+Use at most 1 emoji in the hook.`;
+
+        const defaultOutputStructure = `Output Structure:
+1. Hook with "FOOH" mention
+2. Performance metrics line
+3. Video description connection
+4. Creator attribution
+5. Key insight about effectiveness
+6. Library link call-to-action
+
+Length: 4-7 short lines
+Tone: Professional, engaging
+Emojis: Maximum 1 in hook
+Hashtags: None`;
+
+        // Preset management functions
+        async function loadPresets() {
+            try {
+                const response = await fetch(`${API_BASE}/api/presets`);
+                if (response.ok) {
+                    currentPresets = await response.json();
+                    populatePresetSelector();
+
+                    // Try to load the last used preset from localStorage
+                    const lastUsedPresetId = localStorage.getItem('lastUsedPresetId');
+                    let presetToLoad = null;
+
+                    if (lastUsedPresetId) {
+                        presetToLoad = currentPresets.find(p => p.id == lastUsedPresetId);
+                    }
+
+                    // If no valid last preset found, use the first one
+                    if (!presetToLoad && currentPresets.length > 0) {
+                        presetToLoad = currentPresets[0];
+                    }
+
+                    if (presetToLoad) {
+                        currentPresetId = presetToLoad.id;
+                        loadPreset(currentPresetId);
+                    }
+                } else {
+                    console.error('Failed to load presets');
+                    showError('Failed to load presets');
+                }
+            } catch (error) {
+                console.error('Error loading presets:', error);
+                showError('Error loading presets');
+            }
+        }
+
+        function populatePresetSelector() {
+            presetSelector.innerHTML = '';
+            currentPresets.forEach(preset => {
+                const option = document.createElement('option');
+                option.value = preset.id;
+                option.textContent = preset.name;
+                presetSelector.appendChild(option);
+            });
+            if (currentPresetId) {
+                presetSelector.value = currentPresetId;
+            }
+        }
+
+        async function loadPreset(presetId) {
+            try {
+                const response = await fetch(`${API_BASE}/api/presets/${presetId}`);
+                if (response.ok) {
+                    const preset = await response.json();
+                    systemPromptTextarea.value = preset.system_prompt;
+                    outputStructureTextarea.value = preset.output_structure || '';
+                    presetNameInput.value = preset.name;
+                    currentPresetId = presetId;
+
+                    // Save the last used preset ID to localStorage
+                    localStorage.setItem('lastUsedPresetId', presetId);
+                } else {
+                    showError('Failed to load preset');
+                }
+            } catch (error) {
+                console.error('Error loading preset:', error);
+                showError('Error loading preset');
+            }
+        }
+
+        async function saveCurrentPreset() {
+            const name = presetNameInput.value.trim();
+            const systemPrompt = systemPromptTextarea.value.trim();
+            const outputStructure = outputStructureTextarea.value.trim();
+
+            if (!name || !systemPrompt) {
+                showError('Preset name and system prompt are required');
+                return;
+            }
+
+            try {
+                let response;
+                if (isCreatingNew) {
+                    response = await fetch(`${API_BASE}/api/presets`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ name, systemPrompt, outputStructure })
+                    });
+                } else {
+                    response = await fetch(`${API_BASE}/api/presets/${currentPresetId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ name, systemPrompt, outputStructure })
+                    });
+                }
+
+                if (response.ok) {
+                    const savedPreset = await response.json();
+                    currentPresetId = savedPreset.id;
+                    isCreatingNew = false;
+
+                    // Save the new preset ID as the last used
+                    localStorage.setItem('lastUsedPresetId', savedPreset.id);
+
+                    await loadPresets();
+                    hidePresetNameSection();
+                    showSuccess('Preset saved successfully!');
+                } else {
+                    const errorData = await response.json();
+                    showError(errorData.error || 'Failed to save preset');
+                }
+            } catch (error) {
+                console.error('Error saving preset:', error);
+                showError('Error saving preset');
+            }
+        }
+
+        async function deleteCurrentPreset() {
+            if (!currentPresetId || isCreatingNew) return;
+
+            if (!confirm('Are you sure you want to delete this preset?')) return;
+
+            try {
+                const response = await fetch(`${API_BASE}/api/presets/${currentPresetId}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    await loadPresets();
+                    showSuccess('Preset deleted successfully!');
+                } else {
+                    const errorData = await response.json();
+                    showError(errorData.error || 'Failed to delete preset');
+                }
+            } catch (error) {
+                console.error('Error deleting preset:', error);
+                showError('Error deleting preset');
+            }
+        }
+
+        function startNewPreset() {
+            isCreatingNew = true;
+            currentPresetId = null;
+            presetNameInput.value = '';
+            systemPromptTextarea.value = defaultSystemPrompt;
+            outputStructureTextarea.value = defaultOutputStructure;
+            showPresetNameSection();
+            presetSelector.value = '';
+        }
+
+        function showPresetNameSection() {
+            presetNameSection.style.display = 'block';
+            saveAsNewBtn.style.display = 'inline-block';
+        }
+
+        function hidePresetNameSection() {
+            presetNameSection.style.display = 'none';
+            saveAsNewBtn.style.display = 'none';
+        }
+
+        function showSuccess(message) {
+            successMessage.textContent = message;
+            successMessage.style.display = 'block';
+            setTimeout(() => {
+                successMessage.style.display = 'none';
+            }, 3000);
+        }
+
+        // Tab switching functionality
+        function switchTab(activeTab) {
+            // Update tab buttons
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            activeTab.classList.add('active');
+
+            // Update tab content
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+            if (activeTab === promptsTab) {
+                promptsContent.classList.add('active');
+            } else if (activeTab === factsTab) {
+                factsContent.classList.add('active');
+                loadFacts(); // Load facts when switching to facts tab
+            }
+        }
+
+        // Facts management functions
+        async function loadFacts() {
+            try {
+                const response = await fetch(`${API_BASE}/api/facts`);
+                if (response.ok) {
+                    currentFacts = await response.json();
+                    renderFactsList();
+                } else {
+                    console.error('Failed to load facts');
+                    showError('Failed to load facts');
+                }
+            } catch (error) {
+                console.error('Error loading facts:', error);
+                showError('Error loading facts');
+            }
+        }
+
+        function renderFactsList() {
+            if (currentFacts.length === 0) {
+                factsList.innerHTML = '<div style="padding: 20px; text-align: center; color: #666;">No facts yet. Add your first FOOH insight below!</div>';
+                return;
+            }
+
+            factsList.innerHTML = currentFacts.map(fact => `
+                <div class="fact-item" data-fact-id="${fact.id}">
+                    <div class="fact-content">
+                        <div class="fact-text" id="fact-text-${fact.id}">${escapeHtml(fact.fact_text)}</div>
+                        <div class="fact-meta">Used ${fact.usage_count} times • ${new Date(fact.created_at).toLocaleDateString()}</div>
+                    </div>
+                    <div class="fact-actions" id="fact-actions-${fact.id}">
+                        <button type="button" class="btn-secondary btn-small" onclick="editFact(${fact.id})">Edit</button>
+                        <button type="button" class="btn-danger btn-small" onclick="deleteFact(${fact.id})">Delete</button>
+                    </div>
+                    <div class="fact-edit-form" id="edit-form-${fact.id}">
+                        <textarea class="fact-edit-textarea" id="edit-textarea-${fact.id}">${escapeHtml(fact.fact_text)}</textarea>
+                        <div class="fact-edit-buttons">
+                            <button type="button" class="btn-secondary btn-small" onclick="cancelEditFact(${fact.id})">Cancel</button>
+                            <button type="button" class="btn-primary btn-small" onclick="saveEditFact(${fact.id})">Save</button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        async function addFact() {
+            const factText = newFactText.value.trim();
+            if (!factText) {
+                showError('Please enter a fact text');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/api/facts`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ factText })
+                });
+
+                if (response.ok) {
+                    newFactText.value = '';
+                    await loadFacts();
+                    await loadFactsForDropdown(); // Refresh dropdown facts
+                    showSuccess('Fact added successfully!');
+                } else {
+                    const errorData = await response.json();
+                    showError(errorData.error || 'Failed to add fact');
+                }
+            } catch (error) {
+                console.error('Error adding fact:', error);
+                showError('Error adding fact');
+            }
+        }
+
+        function editFact(factId) {
+            // Hide text and actions, show edit form
+            const factText = document.getElementById(`fact-text-${factId}`);
+            const factActions = document.getElementById(`fact-actions-${factId}`);
+            const editForm = document.getElementById(`edit-form-${factId}`);
+            const textarea = document.getElementById(`edit-textarea-${factId}`);
+
+            factText.style.display = 'none';
+            factActions.style.display = 'none';
+            editForm.classList.add('show');
+            textarea.focus();
+
+            // Position cursor at end
+            textarea.setSelectionRange(textarea.value.length, textarea.value.length);
+        }
+
+        function cancelEditFact(factId) {
+            // Show text and actions, hide edit form
+            const factText = document.getElementById(`fact-text-${factId}`);
+            const factActions = document.getElementById(`fact-actions-${factId}`);
+            const editForm = document.getElementById(`edit-form-${factId}`);
+            const textarea = document.getElementById(`edit-textarea-${factId}`);
+
+            factText.style.display = 'block';
+            factActions.style.display = 'flex';
+            editForm.classList.remove('show');
+
+            // Reset textarea to original value
+            const fact = currentFacts.find(f => f.id === factId);
+            if (fact) {
+                textarea.value = fact.fact_text;
+            }
+        }
+
+        async function saveEditFact(factId) {
+            const textarea = document.getElementById(`edit-textarea-${factId}`);
+            const newText = textarea.value.trim();
+
+            if (!newText) {
+                showError('Fact text cannot be empty');
+                return;
+            }
+
+            const fact = currentFacts.find(f => f.id === factId);
+            if (fact && newText === fact.fact_text) {
+                // No changes, just cancel
+                cancelEditFact(factId);
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/api/facts/${factId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ factText: newText })
+                });
+
+                if (response.ok) {
+                    await loadFacts();
+                    await loadFactsForDropdown(); // Refresh dropdown facts
+                    showSuccess('Fact updated successfully!');
+                } else {
+                    const errorData = await response.json();
+                    showError(errorData.error || 'Failed to update fact');
+                }
+            } catch (error) {
+                console.error('Error updating fact:', error);
+                showError('Error updating fact');
+            }
+        }
+
+        async function deleteFact(factId) {
+            if (!confirm('Are you sure you want to delete this fact?')) return;
+
+            try {
+                const response = await fetch(`${API_BASE}/api/facts/${factId}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    await loadFacts();
+                    await loadFactsForDropdown(); // Refresh dropdown facts
+                    showSuccess('Fact deleted successfully!');
+                } else {
+                    const errorData = await response.json();
+                    showError(errorData.error || 'Failed to delete fact');
+                }
+            } catch (error) {
+                console.error('Error deleting fact:', error);
+                showError('Error deleting fact');
+            }
+        }
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const description = document.getElementById('description').value.trim();
+            const metrics = document.getElementById('metrics').value.trim();
+            const fact = document.getElementById('fact').value.trim();
+            const creator = document.getElementById('creator').value.trim();
+
+            // Clear previous results and errors
+            clearMessages();
+
+            // Validation
+            if (!description || !metrics || !fact) {
+                showError('All fields are required.');
+                return;
+            }
+
+            // Update button state
+            setLoading(true);
+
+            try {
+                // Get current prompt settings from active preset or localStorage fallback
+                let systemPrompt, outputStructure;
+                if (currentPresetId) {
+                    systemPrompt = systemPromptTextarea.value || defaultSystemPrompt;
+                    outputStructure = outputStructureTextarea.value || defaultOutputStructure;
+                } else {
+                    systemPrompt = localStorage.getItem('systemPrompt') || defaultSystemPrompt;
+                    outputStructure = localStorage.getItem('outputStructure') || defaultOutputStructure;
+                }
+
+                const response = await fetch(`${API_BASE}/api/generate`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        description,
+                        metrics,
+                        fact,
+                        creator,
+                        systemPrompt,
+                        outputStructure
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to generate post');
+                }
+
+                // Display result
+                result.textContent = data.post;
+                resultContainer.classList.add('show');
+                copyBtn.disabled = false;
+
+            } catch (error) {
+                console.error('Error:', error);
+                showError(error.message || 'Failed to generate post. Please try again.');
+            } finally {
+                setLoading(false);
+            }
+        });
+
+        copyBtn.addEventListener('click', async () => {
+            try {
+                await navigator.clipboard.writeText(result.textContent);
+                successMessage.textContent = 'Post copied to clipboard!';
+                successMessage.style.display = 'block';
+
+                // Hide success message after 3 seconds
+                setTimeout(() => {
+                    successMessage.style.display = 'none';
+                }, 3000);
+            } catch (error) {
+                showError('Failed to copy to clipboard. Please select and copy manually.');
+            }
+        });
+
+        function setLoading(loading) {
+            if (loading) {
+                generateBtn.innerHTML = '<span class="spinner"></span>Generating...';
+                generateBtn.disabled = true;
+            } else {
+                generateBtn.innerHTML = 'Generate Post';
+                generateBtn.disabled = false;
+            }
+        }
+
+        function showError(message) {
+            errorContainer.innerHTML = `<div class="error">${message}</div>`;
+        }
+
+        function clearMessages() {
+            errorContainer.innerHTML = '';
+            successMessage.style.display = 'none';
+            resultContainer.classList.remove('show');
+            copyBtn.disabled = true;
+        }
+
+        // Settings modal functionality
+        async function loadSettings() {
+            await loadPresets();
+            if (!currentPresetId) {
+                // Fallback to localStorage if no presets
+                systemPromptTextarea.value = localStorage.getItem('systemPrompt') || defaultSystemPrompt;
+                outputStructureTextarea.value = localStorage.getItem('outputStructure') || defaultOutputStructure;
+            }
+        }
+
+        async function saveSettings() {
+            if (isCreatingNew || currentPresetId) {
+                await saveCurrentPreset();
+            } else {
+                // Fallback to localStorage
+                localStorage.setItem('systemPrompt', systemPromptTextarea.value);
+                localStorage.setItem('outputStructure', outputStructureTextarea.value);
+                showSuccess('Settings saved to browser storage!');
+            }
+            if (!isCreatingNew) {
+                settingsModal.classList.remove('show');
+            }
+        }
+
+        // Event listeners for settings
+        settingsIcon.addEventListener('click', async () => {
+            await loadSettings();
+            settingsModal.classList.add('show');
+        });
+
+        saveSettingsBtn.addEventListener('click', saveSettings);
+
+        saveAsNewBtn.addEventListener('click', async () => {
+            await saveCurrentPreset();
+        });
+
+        cancelSettingsBtn.addEventListener('click', () => {
+            isCreatingNew = false;
+            hidePresetNameSection();
+            settingsModal.classList.remove('show');
+        });
+
+        presetSelector.addEventListener('change', (e) => {
+            if (e.target.value) {
+                isCreatingNew = false;
+                hidePresetNameSection();
+                const selectedPresetId = parseInt(e.target.value);
+                loadPreset(selectedPresetId);
+
+                // Save the selected preset ID as the last used
+                localStorage.setItem('lastUsedPresetId', selectedPresetId);
+            }
+        });
+
+        newPresetBtn.addEventListener('click', startNewPreset);
+
+        deletePresetBtn.addEventListener('click', deleteCurrentPreset);
+
+        // Tab event listeners
+        promptsTab.addEventListener('click', () => switchTab(promptsTab));
+        factsTab.addEventListener('click', () => switchTab(factsTab));
+
+        // Facts event listeners
+        addFactBtn.addEventListener('click', addFact);
+        cancelFactsSettings.addEventListener('click', () => {
+            settingsModal.classList.remove('show');
+        });
+
+        newFactText.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                e.preventDefault();
+                addFact();
+            }
+        });
+
+        // Fact dropdown functionality
+        const factInput = document.getElementById('fact');
+        const factDropdown = document.getElementById('factDropdown');
+
+        async function loadFactsForDropdown() {
+            try {
+                const response = await fetch(`${API_BASE}/api/facts`);
+                if (response.ok) {
+                    currentFacts = await response.json();
+                }
+            } catch (error) {
+                console.error('Error loading facts:', error);
+            }
+        }
+
+        function showFactDropdown() {
+            if (currentFacts.length === 0) return;
+
+            factDropdown.innerHTML = currentFacts.map((fact, index) => `
+                <div class="fact-option" data-fact-id="${fact.id}" data-index="${index}">
+                    <div>${escapeHtml(fact.fact_text.substring(0, 100))}${fact.fact_text.length > 100 ? '...' : ''}</div>
+                    <div class="fact-usage">Used ${fact.usage_count} times</div>
+                </div>
+            `).join('');
+
+            factDropdown.classList.add('show');
+            factDropdownVisible = true;
+            selectedFactIndex = -1;
+        }
+
+        function hideFactDropdown() {
+            factDropdown.classList.remove('show');
+            factDropdownVisible = false;
+            selectedFactIndex = -1;
+        }
+
+        function selectFact(factId) {
+            const fact = currentFacts.find(f => f.id === factId);
+            if (fact) {
+                factInput.value = fact.fact_text;
+                hideFactDropdown();
+
+                // Increment usage count
+                fetch(`${API_BASE}/api/facts/${factId}/use`, { method: 'POST' })
+                    .catch(error => console.error('Error updating fact usage:', error));
+            }
+        }
+
+        function navigateDropdown(direction) {
+            if (!factDropdownVisible) return;
+
+            const options = factDropdown.querySelectorAll('.fact-option');
+            if (options.length === 0) return;
+
+            // Remove previous highlighting
+            options.forEach(option => option.classList.remove('highlighted'));
+
+            // Update selection
+            if (direction === 'down') {
+                selectedFactIndex = Math.min(selectedFactIndex + 1, options.length - 1);
+            } else {
+                selectedFactIndex = Math.max(selectedFactIndex - 1, -1);
+            }
+
+            // Highlight current selection
+            if (selectedFactIndex >= 0) {
+                options[selectedFactIndex].classList.add('highlighted');
+                options[selectedFactIndex].scrollIntoView({ block: 'nearest' });
+            }
+        }
+
+        // Event listeners for fact dropdown
+        factInput.addEventListener('focus', () => {
+            if (currentFacts.length === 0) {
+                loadFactsForDropdown();
+            } else {
+                showFactDropdown();
+            }
+        });
+
+        factInput.addEventListener('input', () => {
+            if (factInput.value.length === 0) {
+                showFactDropdown();
+            } else {
+                hideFactDropdown();
+            }
+        });
+
+        factInput.addEventListener('keydown', (e) => {
+            if (factDropdownVisible) {
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    navigateDropdown('down');
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    navigateDropdown('up');
+                } else if (e.key === 'Enter' && selectedFactIndex >= 0) {
+                    e.preventDefault();
+                    const options = factDropdown.querySelectorAll('.fact-option');
+                    const selectedOption = options[selectedFactIndex];
+                    if (selectedOption) {
+                        selectFact(parseInt(selectedOption.dataset.factId));
+                    }
+                } else if (e.key === 'Escape') {
+                    hideFactDropdown();
+                }
+            }
+        });
+
+        // Click outside to hide dropdown
+        document.addEventListener('click', (e) => {
+            if (!factInput.contains(e.target) && !factDropdown.contains(e.target)) {
+                hideFactDropdown();
+            }
+        });
+
+        // Click on dropdown options
+        factDropdown.addEventListener('click', (e) => {
+            const option = e.target.closest('.fact-option');
+            if (option) {
+                selectFact(parseInt(option.dataset.factId));
+            }
+        });
+
+        // Authentication will handle loading presets and facts
+
+        // Hidden testing functionality - Press Ctrl+Shift+T (Cmd+Shift+T on Mac) to fill with test data
+        document.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'T') {
+                e.preventDefault();
+                fillTestData();
+            }
+        });
+
+        function fillTestData() {
+            const testDescription = "In this Maybelline vfx advertising, a gigantic Sunkisser Lip Gloss appears in the middle of Central Park in New York, standing tall among the trees. The scene unfolds as the Lip Gloss twists open, and its motion triggers the sun to rise—turning the sky pink and transforming the park's greenery into a beach complete with flowing water, golden sand, and palm trees growing from the ground, promoting the product's special shade that captures the golden hour magic. With a surprising use of computer generated imagery, this Maybelline lip gloss video transforms an everyday urban park into a transportive beachscape, highlighting Maybelline's message of bringing the glow of golden hour right into your makeup routine.";
+
+            const testMetrics = "209,000 views, 8,006 likes";
+
+            const testFact = "FOOH leverages public place that a lot of people travel to, that are infamous and/ or happen to be in media and movies often. To those something impossible is added using cgi. The combination of something that people know and are used to with something impossible and maybe strange makes it engaging and interesting - which is what make the FOOH Format work. Combining the known with the unknown in a creative way to elevate brands.";
+
+            document.getElementById('description').value = testDescription;
+            document.getElementById('metrics').value = testMetrics;
+            document.getElementById('fact').value = testFact;
+            document.getElementById('creator').value = '@maybelline';
+
+            // Visual feedback
+            showSuccess('Test data loaded! 🧪 (Ctrl+Shift+T)');
+        }
+
+        // Close modal when clicking outside
+        settingsModal.addEventListener('click', (e) => {
+            if (e.target === settingsModal) {
+                settingsModal.classList.remove('show');
+            }
+        });
+
+        // Close modal with Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && settingsModal.classList.contains('show')) {
+                settingsModal.classList.remove('show');
+            }
+        });
+
+        // Authentication functions
+        async function checkAuthStatus() {
+            try {
+                const response = await fetch(`${API_BASE}/api/auth-status`, {
+                    credentials: 'include'
+                });
+                const data = await response.json();
+                isAuthenticated = data.authenticated;
+                updateUI();
+
+                if (isAuthenticated) {
+                    await loadPresets();
+                    await loadFacts();
+                    await loadFactsForDropdown();
+                }
+            } catch (error) {
+                console.error('Auth status check failed:', error);
+                isAuthenticated = false;
+                updateUI();
+            }
+        }
+
+        async function login(password) {
+            try {
+                const response = await fetch(`${API_BASE}/api/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({ password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    isAuthenticated = true;
+                    updateUI();
+                    await loadPresets();
+                    await loadFacts();
+                    await loadFactsForDropdown();
+                    return { success: true };
+                } else {
+                    return { success: false, error: data.error };
+                }
+            } catch (error) {
+                console.error('Login failed:', error);
+                return { success: false, error: 'Login failed. Please try again.' };
+            }
+        }
+
+        async function logout() {
+            try {
+                await fetch(`${API_BASE}/api/logout`, {
+                    method: 'POST',
+                    credentials: 'include'
+                });
+                isAuthenticated = false;
+                updateUI();
+            } catch (error) {
+                console.error('Logout failed:', error);
+            }
+        }
+
+        function updateUI() {
+            if (isAuthenticated) {
+                loginOverlay.style.display = 'none';
+                appContainer.style.display = 'block';
+            } else {
+                loginOverlay.style.display = 'flex';
+                appContainer.style.display = 'none';
+            }
+        }
+
+        // Login form handling
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const password = loginPassword.value;
+
+            if (!password) {
+                loginError.textContent = 'Please enter a password';
+                loginError.style.display = 'block';
+                return;
+            }
+
+            loginButton.disabled = true;
+            loginButton.textContent = 'Logging in...';
+            loginError.style.display = 'none';
+
+            const result = await login(password);
+
+            if (result.success) {
+                loginPassword.value = '';
+            } else {
+                loginError.textContent = result.error;
+                loginError.style.display = 'block';
+            }
+
+            loginButton.disabled = false;
+            loginButton.textContent = 'Login';
+        });
+
+        // Logout button handling
+        if (logoutButton) {
+            logoutButton.addEventListener('click', logout);
+        }
+
+        // Initialize authentication on page load
+        window.addEventListener('load', () => {
+            checkAuthStatus();
+        });
+    </script>
+</body>
+</html>
