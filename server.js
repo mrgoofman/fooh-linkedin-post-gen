@@ -63,7 +63,13 @@ app.post('/api/login', async (req, res) => {
         // In production, you'd use hashed passwords
         if (password === process.env.AUTH_PASSWORD) {
             req.session.authenticated = true;
-            res.json({ success: true, message: 'Login successful' });
+            req.session.save((err) => {
+                if (err) {
+                    console.error('Session save error:', err);
+                    return res.status(500).json({ error: 'Session save failed' });
+                }
+                res.json({ success: true, message: 'Login successful' });
+            });
         } else {
             res.status(401).json({ error: 'Invalid password' });
         }
