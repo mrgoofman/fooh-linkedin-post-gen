@@ -3,6 +3,7 @@ const cors = require('cors');
 const path = require('path');
 const session = require('express-session');
 const bcrypt = require('bcrypt');
+const crypto = require('crypto');
 const Database = require('./database');
 require('dotenv').config();
 
@@ -11,6 +12,19 @@ const PORT = process.env.PORT || 3000;
 
 // Initialize database
 const db = new Database();
+
+// In-memory token storage for authentication
+const authTokens = new Map();
+
+// Clean up expired tokens every hour
+setInterval(() => {
+    const now = Date.now();
+    for (const [token, data] of authTokens.entries()) {
+        if (data.expiresAt < now) {
+            authTokens.delete(token);
+        }
+    }
+}, 60 * 60 * 1000);
 
 // Trust proxy for Railway deployment
 app.set('trust proxy', 1);
@@ -42,13 +56,27 @@ app.use(session({
     }
 }));
 
-// Authentication middleware
+// Authentication middleware - supports both session and token auth
 function requireAuth(req, res, next) {
+    // Check for token in Authorization header first
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+        const token = authHeader.substring(7);
+        const tokenData = authTokens.get(token);
+        if (tokenData && tokenData.expiresAt > Date.now()) {
+            return next();
+        } else if (tokenData && tokenData.expiresAt <= Date.now()) {
+            // Token expired, remove it
+            authTokens.delete(token);
+        }
+    }
+
+    // Fallback to session auth
     if (req.session && req.session.authenticated) {
         return next();
-    } else {
-        return res.status(401).json({ error: 'Authentication required' });
     }
+
+    return res.status(401).json({ error: 'Authentication required' });
 }
 
 // Serve static HTML file for local testing
@@ -68,13 +96,25 @@ app.post('/api/login', async (req, res) => {
         // For simplicity, using plain text comparison
         // In production, you'd use hashed passwords
         if (password === process.env.AUTH_PASSWORD) {
+            // Generate a secure random token
+            const token = crypto.randomBytes(32).toString('hex');
+
+            // Store token with expiration (24 hours)
+            const expiresAt = Date.now() + (24 * 60 * 60 * 1000);
+            authTokens.set(token, { authenticated: true, expiresAt });
+
+            // Also set session for backward compatibility
             req.session.authenticated = true;
             req.session.save((err) => {
                 if (err) {
                     console.error('Session save error:', err);
                     return res.status(500).json({ error: 'Session save failed' });
                 }
-                res.json({ success: true, message: 'Login successful' });
+                res.json({
+                    success: true,
+                    message: 'Login successful',
+                    token: token
+                });
             });
         } else {
             res.status(401).json({ error: 'Invalid password' });
