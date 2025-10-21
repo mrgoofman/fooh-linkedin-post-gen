@@ -4,14 +4,14 @@ const path = require('path');
 const session = require('express-session');
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
-const Database = require('./database');
+const FirebaseWebDatabase = require('./firebase-web-database');
 require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Initialize database
-const db = new Database();
+const db = new FirebaseWebDatabase();
 
 // In-memory token storage for authentication
 const authTokens = new Map();

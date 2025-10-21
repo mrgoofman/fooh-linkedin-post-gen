@@ -23,13 +23,20 @@ OPENAI_API_KEY=your-openai-api-key
 AUTH_PASSWORD=FJ7aGAohcaXfCHgH3DDEPfTv.sv@Xy
 SESSION_SECRET=fooh-session-secret-key-for-development
 NODE_ENV=production
+
+# Firebase Configuration
+FIREBASE_PROJECT_ID=linkedin-generator-95f96
+FIREBASE_PRIVATE_KEY_ID=your-private-key-id
+FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nyour-private-key-here\n-----END PRIVATE KEY-----"
+FIREBASE_CLIENT_EMAIL=your-service-account@linkedin-generator-95f96.iam.gserviceaccount.com
+FIREBASE_CLIENT_ID=your-client-id
 ```
 
 ## 📁 Files Structure
 
 ```
 ├── server.js           # Express server (Railway)
-├── database.js         # SQLite database (Railway)
+├── firebase-database.js # Firebase Firestore database (Railway)
 ├── package.json        # Dependencies (Railway)
 ├── .env.example        # Environment template
 ├── frontend-for-ftp/   # Frontend files (Hetzner FTP)
@@ -42,8 +49,8 @@ NODE_ENV=production
 - OpenAI GPT-4o-mini integration
 - Customizable prompts with presets (max 5)
 - FOOH facts library with usage tracking
-- Session-based authentication
-- SQLite database for presets and facts
+- Token-based authentication (cross-domain support)
+- Firebase Firestore database for persistent data storage
 
 ## 📝 Usage
 
