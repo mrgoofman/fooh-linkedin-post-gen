@@ -38,7 +38,7 @@ app.use(session({
         httpOnly: true,
         maxAge: 24 * 60 * 60 * 1000, // 24 hours
         sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // Allow cross-site cookies in production
-        domain: process.env.NODE_ENV === 'production' ? '.up.railway.app' : undefined // Use Railway domain for cookies
+        // Removed domain restriction to allow cross-domain usage
     }
 }));
 
